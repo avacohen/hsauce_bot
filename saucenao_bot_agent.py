@@ -1,22 +1,14 @@
 import discord
 import os
 from get_source import get_source_data
-from comment_builder import build_comment, build_footprint
 from dotenv import load_dotenv
-
-# # Setting up PRAW
-# # You have to enter your own values here. If confused, refer to any PRAW guide.
-# reddit = praw.Reddit(client_id="Found at reddit.com/prefs/apps/", client_secret="Found at reddit.com/prefs/apps/", password="password", user_agent="rHentai_Bot", username="rHentai_Bot")
-# print('Logged in as '+str(reddit.user.me()))
-# subreddit = reddit.subreddit('hentai')
-#
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_SERVER')
 
-
 client = discord.Client()
+
 
 def build_message(dic):
 	# creator, member, member pixiv link, author, author deviantart link
@@ -58,6 +50,7 @@ def build_message(dic):
 
 	return [creator, material, images]
 
+
 def make_embed(data):
 	# creator, member, member pixiv link, author, author deviantart link
 	creator = data[0]
@@ -66,46 +59,33 @@ def make_embed(data):
 	# pixiv link, gelbooru link, danbooru link, sankaku link, deviantart link
 	images = data[2]
 
-	#link = creator[2] + "/collection/" + str(field[1]) + "test"
-	#embed.add_field(name=str(field[0]), value="![test]!({})".format(variable))
 	em = discord.Embed(title="The Sauce:")
 
 	if creator[0] != '':
-		# add creator field
-		pass
-	if creator[1]!='':
-		# add member
-		pass
+		em.add_field(name='creator', value=creator[0])
+	if creator[1] != '':
 		if creator[2] != '':
-			#add pixiv link
-			pass
-	if creator[3]!='':
-		pass
-		#add author
+			em.add_field(name='member',value='[{0}]({1})'.format(creator[1],creator[2]))
+		else:
+			em.add_field(name='member', value=creator[1])
+	if creator[3] != '':
 		if creator[4] != '':
-			pass
-			#add author devart link
+			em.add_field(name='author', value='[{0}]({1})'.format(creator[3], creator[4]))
+		else:
+			em.add_field(name='member', value=creator[3])
 
 	if material[0] != '':
-		pass
-		#add material and links
+		em.add_field(name='material', value='[google search]({0})|[gelbooru search]({1})'.format(material[1], material[2]))
 
 	if images.count(images[0]) != len(images):
-		# pixiv link, gelbooru link, danbooru link, sankaku link, deviantart link
+		image_source = ['Pixiv', 'Gelbooru', 'Danbooru', 'Sankaku', 'DeviantArt']
+		img_string_list = []
+		for i in range(len(images)):
+			if images[i] != '':
+				img_string_list.append('[{0}]({1})'.format(image_source[i], images[i]))
 
-		if images[0] != '':
-			pass
-		if images[1] != '':
-			pass
-		if images[2] != '':
-			pass
-		if images[3] != '':
-			pass
-		if images[4] != '':
-			pass
-
-	#add web source(probably not in code yet)
-	#em.add_field(name="Its mine now", value="Add DiscordBot to your server! [Click here](https://discordapp.com/oauth2/authorize?client_id=439778986050977792&scope=bot&permissions=8)")
+		img_string = ' | '.join(img_string_list)
+		em.add_field(name='image sources', value=img_string)
 	return em
 
 def cook_sauce(image_url):
@@ -141,33 +121,3 @@ async def on_ready():
 
 
 client.run(TOKEN)
-'''
-def cook_sauce(image_url):
-		sauce = get_source_data(image_url)
-		bot_reply = build_comment(sauce)
-		if type(bot_reply) == str:
-			i_submission.reply(bot_reply).mod.distinguish(sticky=True)
-			print("	Replied: Sauce has been processed [Comment stickied]")
-		else:
-			i_submission.reply(build_footprint()).mod.remove()
-			print("	Replied: Sauce not found [Comment removed]")
-
-for i_submission in subreddit.stream.submissions():
-	print("Found {}".format(i_submission.id))
-	replied = False
-	for i_comment in i_submission.comments:
-		if "View full results" in i_comment.body:
-			replied = True
-			print("	Ignored: Already replied in this thread")
-			break
-	if replied == False:
-			image_url = i_submission.url
-			if image_url[-4:] == '.jpg' or image_url[-4:] == '.png':
-				cook_sauce(image_url)
-			# Handle non-direct imgur links https://imgur.com/... or https://i.imgur.com/...
-			elif (image_url[8:14] == 'imgur.' and image_url[17:20] != '/a/') or (image_url[8:16] == 'i.imgur.' and image_url[19:22] != '/a/'):
-				cook_sauce(image_url+'.jpg')
-			else:
-				i_submission.reply(build_footprint()).mod.remove()
-				print("	Replied: Unsupported submission type [Comment removed]")
-'''
