@@ -91,7 +91,7 @@ def make_embed(data):
             em.add_field(name='member', value=creator[3])
 
     if material[0] != '':
-        em.add_field(name='material',
+        em.add_field(name='material: '+material[0],
                      value='[google search]({}) | [gelbooru search]({})'.format(material[1], material[2]))
 
     if images.count(images[0]) != len(images):
