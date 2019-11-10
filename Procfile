@@ -1,1 +1,1 @@
-worker: python worker.py
+worker: python saucenao_bot_agent.py
