@@ -1,5 +1,6 @@
 # hsauce_bot
 
-This is the source code for /u/HentaiSauce_Bot.
+This is the reddit bot /u/HentaiSauce_Bot ported to discord
+The original bot was created by [MistressMamiya](https://github.com/MistressMamiya)
 
-Feel free to do whatever you want with it (non-commercial purposes only).
+feel free to do whatever you want with it (non-commercial purposes only).
