@@ -1,1 +1,1 @@
-web: gunicorn saucenao_bot_agent:on_ready
+web: gunicorn saucenao_bot_agent:run
