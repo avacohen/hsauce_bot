@@ -149,6 +149,7 @@ async def on_ready():
         f'{bot.user} is connected to the following guild:\n',
         f'{guild.name}(id: {guild.id})\n'
     )
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="hentai"))
 
 
 bot.run(TOKEN)
