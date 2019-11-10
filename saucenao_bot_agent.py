@@ -3,11 +3,16 @@ import os
 from get_source import get_source_data
 from dotenv import load_dotenv
 
+from discord.ext import commands
+
+
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_SERVER')
 
-client = discord.Client()
+# client = discord.Client()
+
+bot = commands.Bot(command_prefix='!')
 
 
 def build_message(dic):
@@ -95,9 +100,9 @@ def cook_sauce(image_url):
 	print(bot_reply)
 	return "could not find sauce" if not bot_reply else bot_reply
 
-@client.event
+@bot.event
 async def on_message(message):
-	if message.author == client.user:
+	if message.author == bot.user:
 		return
 	# if message.content.startswith("!hello"):
 	# 	msg = 'Hello there'.format(message)
@@ -110,14 +115,14 @@ async def on_message(message):
 				print('is image')
 				bot_message= make_embed(cook_sauce(url))
 				await message.channel.send(embed=bot_message)
-@client.event
+@bot.event
 async def on_ready():
-	guild = discord.utils.get(client.guilds, name=GUILD)
+	guild = discord.utils.get(bot.guilds, name=GUILD)
 
 	print(
-		f'{client.user} is connected to the following guild:\n',
+		f'{bot.user} is connected to the following guild:\n',
 		f'{guild.name}(id: {guild.id})\n'
 	)
 
 
-client.run(TOKEN)
+bot.run(TOKEN)
