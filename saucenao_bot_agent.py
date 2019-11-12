@@ -61,11 +61,12 @@ def build_data(dic):
     return [creator, material, images, saucenao]
 
 
-def make_embed(data):
+def add_image(em, data):
     """
-    creates the embed message the bot will send to the channel
+    adds the current data (representing an image) to the embed message the bot will send to the channel
+    :param em: the embed object being added to
     :param data: the data, a list of three lists and a string, containing the found information
-    :return: an embed object representing the message
+    :return: the updated embed object
     """
     # creator, member, member pixiv link, author, author deviantart link
     creator = data[0]
@@ -74,8 +75,6 @@ def make_embed(data):
     # pixiv link, gelbooru link, danbooru link, sankaku link, deviantart link
     images = data[2]
     saucenao = data[3]
-
-    em = discord.Embed(title="The Sauce:")
 
     if creator[0] != '':
         em.add_field(name='creator', value=creator[0])
@@ -91,8 +90,11 @@ def make_embed(data):
             em.add_field(name='member', value=creator[3])
 
     if material[0] != '':
-        em.add_field(name='material: '+material[0],
-                     value='[google search]({}) | [gelbooru search]({})'.format(material[1], material[2]))
+        if material[0] == 'Original':
+            em.add_field(name='material', value=material[0])
+        else:
+            em.add_field(name='material: '+material[0],
+                        value='[google search]({}) | [gelbooru search]({})'.format(material[1], material[2]))
 
     if images.count(images[0]) != len(images):
         image_source = ['Pixiv', 'Gelbooru', 'Danbooru', 'Sankaku', 'DeviantArt']
@@ -104,39 +106,67 @@ def make_embed(data):
         img_string = ' | '.join(img_string_list)
         em.add_field(name='image sources', value=img_string)
 
-    em.add_field(name='credits', value='[View full results]({}) | ported by [avalc0](https://github.com/avalc0) '
-                                       '| original reddit bot by [u/Mistress_Mamiya](https://reddit.com/user/Mistress_Mamiya)'
-                                       ' [(github)](https://github.com/MistressMamiya/hsauce_bot)'.format(saucenao))
+    em.add_field(name='SauceNao', value='[View full results]({})'.format(saucenao))
+
     return em
 
 
-def cook_sauce(image_url):
+def cook_sauce(em, image_url):
     """
-    method to generate the sauce. first gets the source data from saucenao, and then builds a message based on this
+    method to generate the sauce. first gets the source data from saucenao, and then builds a message based on this.
+    :param em: the embed object being added to
     :param image_url: the url of the image being searched
     :return: an embed object that the bot will output
     """
     sauce = get_source_data(image_url)
-    return discord.Embed(title="could not find sauce") if not sauce else make_embed(build_data(sauce))
+    return em.add_field(name='\u200b', value="could not find sauce") if not sauce else add_image(em, build_data(sauce))
+
+
+def make_embed(message):
+    """
+    creates the embed object representing all photos in the message
+    :param message: the message
+    :return: the embed object representing the sauce
+    """
+    em = discord.Embed(title="The Sauce:")
+
+    # if there are multiple files in the message
+    if len(message.attachments) > 1:
+        em.add_field(name='\u200b', value='====== Image #1 =======')
+
+    for i in range(len(message.attachments)):
+        attachment = message.attachments[i]
+        url = attachment.url
+        if url.lower().endswith('.jpg') or url.lower().endswith('.jpeg') or url.lower().endswith('.png'):
+            # if this is not the last item, add the next item's header
+            em = cook_sauce(em, url)
+            if i < len(message.attachments)-1:
+                em.add_field(name='\u200b', value='====== Image #'+str(i+2)+' =======')
+
+    # credits field
+    em.add_field(name='\u200b', value='====== credits =======\nported by [avalc0](https://github.com/avalc0) | original reddit bot by'
+                                       ' [u/Mistress_Mamiya](https://reddit.com/user/Mistress_Mamiya)'
+                                       ' [(github)](https://github.com/MistressMamiya/hsauce_bot)')
+    return em
 
 
 @bot.event
 async def on_message(message):
     """
-    action to take on a message - check if the message contains an image, and if so finds the sauce and sends the
-    sauce output message to discord
+    action to take on a message - check if the message contains an attachment, and if so executes the sauce-finding
+    methods and outputs the resulting embedded message to discord
     :param message: the message being parsed
     :return: break if the message author is the bot
     """
+
     if message.author == bot.user:
         return
 
     if len(message.attachments) > 0:
-        for attachment in message.attachments:
-            url = attachment.url
-            if url.lower().endswith('.jpg') or url.lower().endswith('.jpeg') or url.lower().endswith('.png'):
-                bot_message = cook_sauce(url)
-                await message.channel.send(embed=bot_message)
+        bot_message = make_embed(message)
+        # print('awaiting message:')
+        await message.channel.send(embed=bot_message)
+    # print('message done')
 
 
 @bot.event
@@ -149,6 +179,7 @@ async def on_ready():
         f'{bot.user} is connected to the following guild:\n',
         f'{guild.name}(id: {guild.id})\n'
     )
+    # set the bot's activity
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="hentai"))
 
 

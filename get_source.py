@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests, re
 
+
 def create_link_dictionary(soup):
 	"""
 	parses the soup to create a dictionary of sauce data
@@ -40,6 +41,7 @@ def create_link_dictionary(soup):
 			dic.update({'Danbooru': pg})
 		if re.search(r"chan\.sankakucomplex\.com/post", pg) and dic.get('Sankaku') is None:
 			dic.update({'Sankaku': pg})
+
 	return dic
 
 
@@ -53,6 +55,7 @@ def get_source_data(picture_url):
 	txt = resp.text.split('Low similarity results')[0]  # Get rid of the low similarity results
 	soup = BeautifulSoup(txt, 'html.parser')
 	dic = create_link_dictionary(soup)
+
 	if len(dic) == 0:
 		return False
 	dic.update({'SauceNAO': 'http://saucenao.com/search.php?db=999&url='+picture_url})
