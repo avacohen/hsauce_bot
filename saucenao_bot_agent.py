@@ -77,24 +77,28 @@ def add_image(em, data):
     saucenao = data[3]
 
     if creator[0] != '':
-        em.add_field(name='creator', value=creator[0])
+        em.add_field(name='creator', value=creator[0], inline=True)
     if creator[1] != '':
         if creator[2] != '':
-            em.add_field(name='member', value='[{0}]({1})'.format(creator[1], creator[2]))
+            em.add_field(name='member', value='[{0}]({1})'.format(creator[1], creator[2]), inline=True)
         else:
-            em.add_field(name='member', value=creator[1])
+            em.add_field(name='member', value=creator[1], inline=True)
     if creator[3] != '':
         if creator[4] != '':
-            em.add_field(name='author', value='[{0}]({1})'.format(creator[3], creator[4]))
+            em.add_field(name='author', value='[{0}]({1})'.format(creator[3], creator[4]), inline=True)
         else:
-            em.add_field(name='member', value=creator[3])
+            em.add_field(name='member', value=creator[3], inline=True)
 
     if material[0] != '':
+        em.add_field(name='material', value=material[0])
+        # old code for gelboru/google search
+        '''
         if material[0] == 'Original':
-            em.add_field(name='material', value=material[0])
+            em.add_field(name='material', value=material[0], inline=False)
         else:
             em.add_field(name='material: '+material[0],
-                        value='[google search]({}) | [gelbooru search]({})'.format(material[1], material[2]))
+                        value='[google search]({}) | [gelbooru search]({})'.format(material[1], material[2]), inline=False)
+        '''
 
     if images.count(images[0]) != len(images):
         image_source = ['Pixiv', 'Gelbooru', 'Danbooru', 'Sankaku', 'DeviantArt']
@@ -104,9 +108,10 @@ def add_image(em, data):
                 img_string_list.append('[{0}]({1})'.format(image_source[i], images[i]))
 
         img_string = ' | '.join(img_string_list)
-        em.add_field(name='image sources', value=img_string)
+        em.add_field(name='image sources', value=img_string, inline=True)
 
-    em.add_field(name='SauceNao', value='[View full results]({})'.format(saucenao))
+    # code for saucenao field
+    # em.add_field(name='SauceNao', value='[View full results]({})'.format(saucenao), inline=False)
 
     return em
 
@@ -119,7 +124,7 @@ def cook_sauce(em, image_url):
     :return: an embed object that the bot will output
     """
     sauce = get_source_data(image_url)
-    return em.add_field(name='\u200b', value="could not find sauce") if not sauce else add_image(em, build_data(sauce))
+    return em.add_field(name='\u200b', value="could not find sauce", inline=False) if not sauce else add_image(em, build_data(sauce))
 
 
 def make_embed(message):
@@ -132,7 +137,7 @@ def make_embed(message):
 
     # if there are multiple files in the message
     if len(message.attachments) > 1:
-        em.add_field(name='\u200b', value='====== Image #1 =======')
+        em.add_field(name='\u200b', value='====== Image #1 =======', inline=False)
 
     for i in range(len(message.attachments)):
         attachment = message.attachments[i]
@@ -141,12 +146,14 @@ def make_embed(message):
             # if this is not the last item, add the next item's header
             em = cook_sauce(em, url)
             if i < len(message.attachments)-1:
-                em.add_field(name='\u200b', value='====== Image #'+str(i+2)+' =======')
+                em.add_field(name='\u200b', value='====== Image #'+str(i+2)+' =======', inline=False)
 
     # credits field
+    '''
     em.add_field(name='\u200b', value='====== credits =======\nported by [avalc0](https://github.com/avalc0) | original reddit bot by'
                                        ' [u/Mistress_Mamiya](https://reddit.com/user/Mistress_Mamiya)'
-                                       ' [(github)](https://github.com/MistressMamiya/hsauce_bot)')
+                                       ' [(github)](https://github.com/MistressMamiya/hsauce_bot)', inline=False)
+    '''
     return em
 
 
