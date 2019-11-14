@@ -1,12 +1,19 @@
 import discord
 import os
+
+from discord.ext.commands import has_permissions
+
 from get_source import get_source_data
 from dotenv import load_dotenv
 from discord.ext import commands
+import re
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_SERVER')
+auto = True
+# m = None
+# bot_m = None
 
 bot = commands.Bot(command_prefix='!')
 
@@ -90,8 +97,8 @@ def add_image(em, data):
             em.add_field(name='member', value=creator[3], inline=True)
 
     if material[0] != '':
-        em.add_field(name='material', value=material[0])
-        # old code for gelboru/google search
+        em.add_field(name='material', value='[{}]({})'.format(material[0], material[1]))
+        # code for gelboru/google search of material
         '''
         if material[0] == 'Original':
             em.add_field(name='material', value=material[0], inline=False)
@@ -111,7 +118,7 @@ def add_image(em, data):
         em.add_field(name='image sources', value=img_string, inline=True)
 
     # code for saucenao field
-    # em.add_field(name='SauceNao', value='[View full results]({})'.format(saucenao), inline=False)
+    em.add_field(name='SauceNao', value='[View full results]({})'.format(saucenao), inline=False)
 
     return em
 
@@ -128,6 +135,8 @@ def cook_sauce(em, image_url):
 
 
 def make_embed(message):
+
+
     """
     creates the embed object representing all photos in the message
     :param message: the message
@@ -142,10 +151,11 @@ def make_embed(message):
     for i in range(len(message.attachments)):
         attachment = message.attachments[i]
         url = attachment.url
+
         if url.lower().endswith('.jpg') or url.lower().endswith('.jpeg') or url.lower().endswith('.png'):
             # if this is not the last item, add the next item's header
             em = cook_sauce(em, url)
-            if i < len(message.attachments)-1:
+            if i < len(message.attachments) - 1:
                 em.add_field(name='\u200b', value='====== Image #'+str(i+2)+' =======', inline=False)
 
     # credits field
@@ -166,14 +176,93 @@ async def on_message(message):
     :return: break if the message author is the bot
     """
 
+    await bot.process_commands(message)
+
     if message.author == bot.user:
         return
-
-    if len(message.attachments) > 0:
-        bot_message = make_embed(message)
-        # print('awaiting message:')
-        await message.channel.send(embed=bot_message)
+    if len(message.attachments) > 0 and 'ignore' not in message.content and (auto or (not auto and 'sauce' in message.content)):
+            bot_message = make_embed(message)
+            await message.channel.send(embed=bot_message)
     # print('message done')
+
+'''
+@bot.command()
+async def sauce(ctx, r='all'):
+    if len(m.attachments) > 0:
+        global bot_m
+        if r.lower() == 'all':
+            print('here - all')
+            bot_m = make_embed(m, 0, len(m.attachments))
+        else:
+            if re.search('\d+:|-\d+', r):
+                l = r.split(':')
+                if int(l[0]) < 1:
+                    l[0] = 1
+                if int(l[1]) > len(m.attachments):
+                    l[1] = len(m.attachments)
+                bot_m = make_embed(m, int(l[0])-1, int(l[1]))
+        await m.channel.send(embed=bot_m)
+'''
+
+@bot.command()
+async def sauce(ctx):
+    pass
+
+# async def can_post(user, need_admin, op, need_roles):
+#     if op.lower() == 'and':
+#         print('this is an and')
+#         if (need_admin and user.administrator) and all(role in user.roles for role in need_roles):
+#             print('can post--> returning true')
+#             return True
+#         else: return False
+#     else:
+#         print('this is not an and')
+#         print('is admin: ', user.administrator)
+#         print('user roles: ', user.roles)
+#         print('need roles: ', need_roles)
+#         if all(role in user.roles for role in need_roles):
+#             print('has the roles--> returning true')
+#             return True
+#         if need_admin and user.administrator:
+#             print('is admin--> returning true')
+#             return True
+#         return False
+#     print('reached end--> returning false')
+#     return False
+
+
+
+@bot.command()
+async def ignore(ctx):
+    pass
+
+
+@has_permissions(administrator=True)
+@bot.command()
+async def auto(ctx, state: str):
+    global auto
+    if state.lower() == 'on':
+        auto = True
+        await ctx.send('automatic response turned on')
+
+    elif state.lower() == 'off':
+        auto = False
+        await ctx.send('automatic response turned off')
+
+    elif state.lower() == 'toggle':
+        auto = not auto
+        await ctx.send('automatic response turned ' + str('on' if auto else 'off'))
+
+    elif state.lower() == 'get':
+        await ctx.send('automatic response is turned ' + str('on' if auto else 'off'))
+
+    else:
+        await ctx.send('invalid command - specify on, off or toggle')
+
+@auto.error
+async def auto_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('invalid command - specify on, off or toggle')
 
 
 @bot.event
@@ -182,6 +271,8 @@ async def on_ready():
     startup sequence. prints the bot and the server it is connected to
     """
     guild = discord.utils.get(bot.guilds, name=GUILD)
+    global auto
+    auto = True
     print(
         f'{bot.user} is connected to the following guild:\n',
         f'{guild.name}(id: {guild.id})\n'
