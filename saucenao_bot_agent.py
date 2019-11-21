@@ -46,8 +46,8 @@ def build_data(dic):
             if dic.get('DeviantArt_art') is not None:
                 creator[4] = dic.get('DeviantArt_art')
     if dic.get('Material') is not None:
-        material[0] = dic.get('Material').title()
-        if dic.get('Material') != 'original':
+        if dic.get('Material').lower() != 'original':
+            material[0] = dic.get('Material').title()
             material[1] = 'http://www.google.com/search?q={}'.format('+'.join(dic.get('Material').split(' ')))
             material[2] = 'https://gelbooru.com/index.php?page=post&s=list&tags={}'.format(
                 '_'.join(dic.get('Material').split(' ')))
@@ -75,10 +75,13 @@ def add_image(em, data):
     :param data: the data, a list of three lists and a string, containing the found information
     :return: the updated embed object
     """
+    print(data)
     # creator, member, member pixiv link, author, author deviantart link
     creator = data[0]
     # material, google search, gelbooru search
     material = data[1]
+    print(material[0])
+
     # pixiv link, gelbooru link, danbooru link, sankaku link, deviantart link
     images = data[2]
     saucenao = data[3]
@@ -95,8 +98,7 @@ def add_image(em, data):
             em.add_field(name='author', value='[{0}]({1})'.format(creator[3], creator[4]), inline=True)
         else:
             em.add_field(name='member', value=creator[3], inline=True)
-    print(material[0])
-    if material[0].lower() != 'original':
+    if material[0].lower() != '':
 
         em.add_field(name='material', value='[{}]({})'.format(material[0], material[1]))
         # code for gelboru/google search of material
