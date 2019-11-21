@@ -95,8 +95,9 @@ def add_image(em, data):
             em.add_field(name='author', value='[{0}]({1})'.format(creator[3], creator[4]), inline=True)
         else:
             em.add_field(name='member', value=creator[3], inline=True)
+    print(material[0])
+    if material[0].lower() != 'original':
 
-    if material[0] != '':
         em.add_field(name='material', value='[{}]({})'.format(material[0], material[1]))
         # code for gelboru/google search of material
         '''
